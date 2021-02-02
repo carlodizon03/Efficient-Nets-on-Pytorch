@@ -58,10 +58,10 @@ class HarDBlock(nn.Module):
         out_channels = growth_rate
         link = []
         for i in range(10):
-          dv = 2 ** i
-          if layer % dv == 0:
-            k = layer - dv
-            link.append(k)
+          dv = 2 ** i           # 2^n
+          if layer % dv == 0:   # if 2^2 divides layer k:
+            k = layer - dv      # then new layer to connect = k - 2^n
+            link.append(k)      # connect layer k to the layer k - 2^n
             if i > 0:
                 out_channels *= grmul
         out_channels = int(int(out_channels + 1) / 2) * 2
@@ -82,6 +82,7 @@ class HarDBlock(nn.Module):
         self.out_channels = 0 # if upsample else in_channels
         for i in range(n_layers):
           outch, inch, link = self.get_link(i+1, in_channels, growth_rate, grmul)
+          print(i, outch, inch, link)
           self.links.append(link)
           use_relu = residual_out
           if dwconv:
@@ -170,12 +171,7 @@ class HarDNet(nn.Module):
         self.base.append ( ConvLayer(first_ch[0], first_ch[1],  kernel=second_kernel) )
         
         # Maxpooling or DWConv3x3 downsampling
-        if max_pool:
-          self.base.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
-        else:
-          self.base.append ( DWConvLayer(first_ch[1], first_ch[1], stride=2) )
-
-        # Build all HarDNet blocks
+        if max_pool:in_channels
         ch = first_ch[1]
         for i in range(blks):
             blk = HarDBlock(ch, gr[i], grmul, n_layers[i], dwconv=depth_wise)
@@ -236,11 +232,11 @@ class HarDNet(nn.Module):
 
 
 
-# model = HarDNet(depth_wise = True,pretrained = False)
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# model.to(device)
+model = HarDNet(depth_wise = True,pretrained = False)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
-# summary(model, (3,224,224))
-# macs, params = get_model_complexity_info(model, (3,224,224), as_strings=True,
-#                                            print_per_layer_stat=False, verbose=False)
-# print('{:<30}  {:<8} / {} gflops'.format('Computational complexity: ', macs, float(macs[:4])*2))
+summary(model, (3,224,224))
+macs, params = get_model_complexity_info(model, (3,224,224), as_strings=True,
+                                           print_per_layer_stat=False, verbose=False)
+print('{:<30}  {:<8} / {} gflops'.format('Computational complexity: ', macs, float(macs[:4])*2))
