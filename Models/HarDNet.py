@@ -82,7 +82,7 @@ class HarDBlock(nn.Module):
         self.out_channels = 0 # if upsample else in_channels
         for i in range(n_layers):
           outch, inch, link = self.get_link(i+1, in_channels, growth_rate, grmul)
-          print(i, outch, inch, link)
+          print(i, inch, outch, link)
           self.links.append(link)
           use_relu = residual_out
           if dwconv:
@@ -92,14 +92,14 @@ class HarDBlock(nn.Module):
           
           if (i % 2 == 0) or (i == n_layers - 1):
             self.out_channels += outch
-        #print("Blk out =",self.out_channels)
+        print("Blk out =",self.out_channels)
         self.layers = nn.ModuleList(layers_)
         
     def forward(self, x):
         layers_ = [x]
-        
         for layer in range(len(self.layers)):
             link = self.links[layer]
+            print("links: ", link)
             tin = []
             for i in link:
                 tin.append(layers_[i])
@@ -109,7 +109,6 @@ class HarDBlock(nn.Module):
                 x = tin[0]
             out = self.layers[layer](x)
             layers_.append(out)
-            
         t = len(layers_)
         out_ = []
         for i in range(t):
@@ -230,13 +229,3 @@ class HarDNet(nn.Module):
           x = layer(x)
         return x
 
-
-
-model = HarDNet(depth_wise = True,pretrained = False)
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model.to(device)
-
-summary(model, (3,224,224))
-macs, params = get_model_complexity_info(model, (3,224,224), as_strings=True,
-                                           print_per_layer_stat=False, verbose=False)
-print('{:<30}  {:<8} / {} gflops'.format('Computational complexity: ', macs, float(macs[:4])*2))

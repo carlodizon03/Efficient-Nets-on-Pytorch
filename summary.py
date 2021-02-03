@@ -8,6 +8,8 @@ from Models.IRIS_Net import IRIS_Net
 from Models.IRIS_Netv2  import  IRIS_Netv2
 from Models.UNet import UNet
 from Models.HarDNet import HarDNet
+from Models.FCHarDNet import hardnet as FCHarDNet
+from Models.ENet import ENet
 """Load Cuda """
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -18,7 +20,9 @@ models = {
         "IRIS_Net": IRIS_Net,
         "IRIS_Netv2": IRIS_Netv2,
         "UNet": UNet,
-        "HarDNet-DWS-39": HarDNet
+        "HarDNet-DWS-39": HarDNet,
+        "FCHarDNet": FCHarDNet,
+        "ENet": ENet,
         }
 
 parser = argparse.ArgumentParser()
@@ -47,17 +51,24 @@ if(model == "IRIS_Net"):
 elif(model == "IRIS_Netv2"):
     net = models[model](in_channels = ch_in, out_channels = ch_out, initial_features = initial_features)
 elif(model == "UNet"):
-    net = models[model](in_channels = ch_in, out_channels = ch_out, initial_features = initial_features)
+    net = models[model](in_channels = ch_in, out_channels = ch_out, init_features = initial_features)
 elif(model == "HarDNet-DWS-39"):
     net = models[model](depth_wise = True, arch = 39, pretrained = False)
-    
+elif(model == "FCHarDNet"):
+    net = models[model]()
+elif(model == "ENet"):
+    net = models[model](num_classes = 1)
+
+
 net.to(device)
 su = str(summary(net,(ch_in, img_size, img_size)))
+su_list = list(su.split('\n'))
 macs, _ = get_model_complexity_info(net, (3,224,224), as_strings=True,
                                            print_per_layer_stat=False, verbose=False)
 print('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
-su+='\n{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2)
-su+="\n=========================================================================================="
+su_list.append('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
+su_list.append("==========================================================================================")
+
 import time
 import numpy as np
 times = []
@@ -70,18 +81,17 @@ for i in range(15):
     tlapse = time.time() - start
     times.append(tlapse)
     print("Image {0} Inference Time: {1:.4f}".format(i,tlapse))
-    su+="\nImage {0} Inference Time: {1:.4f}".format(i,tlapse)
+    su_list.append("Image {0} Inference Time: {1:.4f}".format(i,tlapse))
 
 print("Mean Inference time per image: {0:.4f}".format(np.mean(times)))
-su+="\nMean Inference time per image: {0:.4f}".format(np.mean(times))
+su_list.append("Mean Inference time per image: {0:.4f}".format(np.mean(times)))
 
 print("==========================================================================================")
-su+="\n=========================================================================================="
-
+su_list.append("==========================================================================================")
 
 if is_save:
     file = open(save_path+model+'_'+train_mode+'_'+str(ch_in)+'_'+str(ch_out)+'_'+str(initial_features)+'.txt', "w")
-    for val in su:
+    for val in su_list:
         file.write(val)
         file.write('\n')
     file.close()
