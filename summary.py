@@ -10,6 +10,8 @@ from Models.UNet import UNet
 from Models.HarDNet import HarDNet
 from Models.FCHarDNet import hardnet as FCHarDNet
 from Models.ENet import ENet
+from Models.SegNet import SegNet
+from Models.ENet_no_tConv import ENet_no_tConv
 """Load Cuda """
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -23,6 +25,8 @@ models = {
         "HarDNet-DWS-39": HarDNet,
         "FCHarDNet": FCHarDNet,
         "ENet": ENet,
+        "SegNet": SegNet,
+        "ENet_no_tConv": ENet_no_tConv
         }
 
 parser = argparse.ArgumentParser()
@@ -57,6 +61,10 @@ elif(model == "HarDNet-DWS-39"):
 elif(model == "FCHarDNet"):
     net = models[model]()
 elif(model == "ENet"):
+    net = models[model](num_classes = 1)
+elif(model == "SegNet"):
+    net = models[model](n_classes = 1)
+elif(model == "ENet_no_tConv"):
     net = models[model](num_classes = 1)
 
 
