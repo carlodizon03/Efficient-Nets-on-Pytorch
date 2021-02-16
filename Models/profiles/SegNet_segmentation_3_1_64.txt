@@ -1,0 +1,105 @@
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+├─encoder1: 1-1                          [-1, 64, 112, 112]        --
+|    └─conv2DBatchNormRelu: 2-1          [-1, 64, 224, 224]        --
+|    |    └─Sequential: 3-1              [-1, 64, 224, 224]        1,920
+|    └─conv2DBatchNormRelu: 2-2          [-1, 64, 224, 224]        --
+|    |    └─Sequential: 3-2              [-1, 64, 224, 224]        37,056
+|    └─MaxPool2d: 2-3                    [-1, 64, 112, 112]        --
+├─encoder1: 1-2                          [-1, 128, 56, 56]         --
+|    └─conv2DBatchNormRelu: 2-4          [-1, 128, 112, 112]       --
+|    |    └─Sequential: 3-3              [-1, 128, 112, 112]       74,112
+|    └─conv2DBatchNormRelu: 2-5          [-1, 128, 112, 112]       --
+|    |    └─Sequential: 3-4              [-1, 128, 112, 112]       147,840
+|    └─MaxPool2d: 2-6                    [-1, 128, 56, 56]         --
+├─encoder2: 1-3                          [-1, 256, 28, 28]         --
+|    └─conv2DBatchNormRelu: 2-7          [-1, 256, 56, 56]         --
+|    |    └─Sequential: 3-5              [-1, 256, 56, 56]         295,680
+|    └─conv2DBatchNormRelu: 2-8          [-1, 256, 56, 56]         --
+|    |    └─Sequential: 3-6              [-1, 256, 56, 56]         590,592
+|    └─conv2DBatchNormRelu: 2-9          [-1, 256, 56, 56]         --
+|    |    └─Sequential: 3-7              [-1, 256, 56, 56]         590,592
+|    └─MaxPool2d: 2-10                   [-1, 256, 28, 28]         --
+├─encoder2: 1-4                          [-1, 512, 14, 14]         --
+|    └─conv2DBatchNormRelu: 2-11         [-1, 512, 28, 28]         --
+|    |    └─Sequential: 3-8              [-1, 512, 28, 28]         1,181,184
+|    └─conv2DBatchNormRelu: 2-12         [-1, 512, 28, 28]         --
+|    |    └─Sequential: 3-9              [-1, 512, 28, 28]         2,360,832
+|    └─conv2DBatchNormRelu: 2-13         [-1, 512, 28, 28]         --
+|    |    └─Sequential: 3-10             [-1, 512, 28, 28]         2,360,832
+|    └─MaxPool2d: 2-14                   [-1, 512, 14, 14]         --
+├─encoder2: 1-5                          [-1, 512, 7, 7]           --
+|    └─conv2DBatchNormRelu: 2-15         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-11             [-1, 512, 14, 14]         2,360,832
+|    └─conv2DBatchNormRelu: 2-16         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-12             [-1, 512, 14, 14]         2,360,832
+|    └─conv2DBatchNormRelu: 2-17         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-13             [-1, 512, 14, 14]         2,360,832
+|    └─MaxPool2d: 2-18                   [-1, 512, 7, 7]           --
+├─decoder2: 1-6                          [-1, 512, 14, 14]         --
+|    └─MaxUnpool2d: 2-19                 [-1, 512, 14, 14]         --
+|    └─conv2DBatchNormRelu: 2-20         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-14             [-1, 512, 14, 14]         2,360,832
+|    └─conv2DBatchNormRelu: 2-21         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-15             [-1, 512, 14, 14]         2,360,832
+|    └─conv2DBatchNormRelu: 2-22         [-1, 512, 14, 14]         --
+|    |    └─Sequential: 3-16             [-1, 512, 14, 14]         2,360,832
+├─decoder2: 1-7                          [-1, 256, 28, 28]         --
+|    └─MaxUnpool2d: 2-23                 [-1, 512, 28, 28]         --
+|    └─conv2DBatchNormRelu: 2-24         [-1, 512, 28, 28]         --
+|    |    └─Sequential: 3-17             [-1, 512, 28, 28]         2,360,832
+|    └─conv2DBatchNormRelu: 2-25         [-1, 512, 28, 28]         --
+|    |    └─Sequential: 3-18             [-1, 512, 28, 28]         2,360,832
+|    └─conv2DBatchNormRelu: 2-26         [-1, 256, 28, 28]         --
+|    |    └─Sequential: 3-19             [-1, 256, 28, 28]         1,180,416
+├─decoder2: 1-8                          [-1, 128, 56, 56]         --
+|    └─MaxUnpool2d: 2-27                 [-1, 256, 56, 56]         --
+|    └─conv2DBatchNormRelu: 2-28         [-1, 256, 56, 56]         --
+|    |    └─Sequential: 3-20             [-1, 256, 56, 56]         590,592
+|    └─conv2DBatchNormRelu: 2-29         [-1, 256, 56, 56]         --
+|    |    └─Sequential: 3-21             [-1, 256, 56, 56]         590,592
+|    └─conv2DBatchNormRelu: 2-30         [-1, 128, 56, 56]         --
+|    |    └─Sequential: 3-22             [-1, 128, 56, 56]         295,296
+├─decoder1: 1-9                          [-1, 64, 112, 112]        --
+|    └─MaxUnpool2d: 2-31                 [-1, 128, 112, 112]       --
+|    └─conv2DBatchNormRelu: 2-32         [-1, 128, 112, 112]       --
+|    |    └─Sequential: 3-23             [-1, 128, 112, 112]       147,840
+|    └─conv2DBatchNormRelu: 2-33         [-1, 64, 112, 112]        --
+|    |    └─Sequential: 3-24             [-1, 64, 112, 112]        73,920
+├─decoder1: 1-10                         [-1, 1, 224, 224]         --
+|    └─MaxUnpool2d: 2-34                 [-1, 64, 224, 224]        --
+|    └─conv2DBatchNormRelu: 2-35         [-1, 64, 224, 224]        --
+|    |    └─Sequential: 3-25             [-1, 64, 224, 224]        37,056
+|    └─conv2DBatchNormRelu: 2-36         [-1, 1, 224, 224]         --
+|    |    └─Sequential: 3-26             [-1, 1, 224, 224]         579
+==========================================================================================
+Total params: 29,443,587
+Trainable params: 29,443,587
+Non-trainable params: 0
+Total mult-adds (G): 30.72
+==========================================================================================
+Input size (MB): 0.57
+Forward/backward pass size (MB): 343.77
+Params size (MB): 112.32
+Estimated Total Size (MB): 456.66
+==========================================================================================
+Computational complexity:       30.73 GMac / 61.4 GFLOPS
+==========================================================================================
+Image 0 Inference Time: 0.0033
+Image 1 Inference Time: 0.0045
+Image 2 Inference Time: 0.0034
+Image 3 Inference Time: 0.0034
+Image 4 Inference Time: 0.0037
+Image 5 Inference Time: 0.0035
+Image 6 Inference Time: 0.0036
+Image 7 Inference Time: 0.0036
+Image 8 Inference Time: 0.0034
+Image 9 Inference Time: 0.0035
+Image 10 Inference Time: 0.0034
+Image 11 Inference Time: 0.0035
+Image 12 Inference Time: 0.0034
+Image 13 Inference Time: 0.0034
+Image 14 Inference Time: 0.0034
+Mean Inference time per image: 0.0035
+==========================================================================================

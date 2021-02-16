@@ -86,20 +86,20 @@ Estimated Total Size (MB): 538.92
 ==========================================================================================
 Computational complexity:       41.9 GMac / 83.8 GFLOPS
 ==========================================================================================
-Image 0 Inference Time: 0.0048
-Image 1 Inference Time: 0.0088
-Image 2 Inference Time: 0.0036
-Image 3 Inference Time: 0.0034
-Image 4 Inference Time: 0.0046
-Image 5 Inference Time: 0.0043
-Image 6 Inference Time: 0.0027
-Image 7 Inference Time: 0.0025
-Image 8 Inference Time: 0.0025
-Image 9 Inference Time: 0.0025
-Image 10 Inference Time: 0.0024
-Image 11 Inference Time: 0.0025
-Image 12 Inference Time: 0.0025
-Image 13 Inference Time: 0.0024
-Image 14 Inference Time: 0.0025
-Mean Inference time per image: 0.0035
+Image 0 Inference Time: 0.0035
+Image 1 Inference Time: 0.0086
+Image 2 Inference Time: 0.0027
+Image 3 Inference Time: 0.0027
+Image 4 Inference Time: 0.0027
+Image 5 Inference Time: 0.0027
+Image 6 Inference Time: 0.0035
+Image 7 Inference Time: 0.0027
+Image 8 Inference Time: 0.0027
+Image 9 Inference Time: 0.0027
+Image 10 Inference Time: 0.0027
+Image 11 Inference Time: 0.0027
+Image 12 Inference Time: 0.0027
+Image 13 Inference Time: 0.0027
+Image 14 Inference Time: 0.0027
+Mean Inference time per image: 0.0032
 ==========================================================================================
