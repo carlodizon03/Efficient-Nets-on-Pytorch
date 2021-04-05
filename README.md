@@ -1,7 +1,5 @@
 
 # Efficient Models
-
-
 | Model     |   Parameters  |   GMacs   |   GFLOPS  |   F-Pass Memory   |  Loss  |   IoU   |  Epoch |  Optimizer |  Criterion  | LR | Dataset |   Paper | Code |   Type  |
 |-----------|---------------|-----------|-----------|-------------------|--------|---------|--------|------------|-------------|----|---------|---------|------|---------|
 | HarDNet-DWS-39   |      2.2M         |     0.44      |     0.88      |        29.77MB           |  0 |   0 |  0  | N | N | N | 38-Cloud | [Link](https://drive.google.com/file/d/1_QFqasN4UEIzv5ku5JIzSHXH5JFrIkzF/view?usp=sharing) | [Code](https://github.com/PingoLH/Pytorch-HarDNet) | Classification |
@@ -19,3 +17,6 @@
 
 
 # Top Models Trained in CamVid Dataset
+|    Model  |    mIoU   |   Sky  |   Road   |   Building   |    Sidewalk   |    Car    |    Tree    |   Fence   |   Cyclist   |   Pedestrian   |   Pole   |  Sign  |
+|-----------|-----------|--------|----------|--------------|---------------|-----------|------------|-----------|-------------|----------------|----------|--------|
+| FCHarDNet |   0.506	|  51.95 |   50.99  |    40.20     |      39.32    |   37.69   |    35.33   |    19.1   |     16.18   |      13.35     |  10.02   |  8.45  |  
