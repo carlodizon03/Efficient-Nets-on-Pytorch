@@ -1,5 +1,5 @@
 
-#Efficient Models
+# Efficient Models
 
 
 | Model     |   Parameters  |   GMacs   |   GFLOPS  |   F-Pass Memory   |  Loss  |   IoU   |  Epoch |  Optimizer |  Criterion  | LR | Dataset |   Paper | Code |   Type  |
@@ -18,4 +18,4 @@
 
 
 
-#Top Models Trained in CamVid Dataset
+# Top Models Trained in CamVid Dataset
