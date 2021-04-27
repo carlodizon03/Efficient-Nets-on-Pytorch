@@ -28,13 +28,9 @@ class fibModule(nn.Module):
 
 
     '''
-    def __init__(self, in_channels, depth):
+    def __init__(self):
         super().__init__()
 
-        self.in_channels = in_channels
-        self.depth = depth
-
-    
     def fibonacci(self,depth):
 
         f = []
@@ -67,28 +63,36 @@ class fibModule(nn.Module):
             encoder.append(nn.Conv2d(in_channels,
                                     out_channels,
                                     kernel_size=3))
-            print(block, 0, in_channels,out_channels)
+            # print(block, 0, in_channels,out_channels)
             for layer in range(1,block_depth):
                 idx =  block*block_depth+layer
                 in_channels = blocks_channel_list[idx] + blocks_channel_list[idx-1]
                 out_channels = blocks_channel_list[idx+1]
-                # encoder.append(nn.Conv2d(in_channels,out_channels,kernel_size=3))
-                print(block, layer, in_channels,out_channels)
+                encoder.append(nn.Conv2d(in_channels,out_channels,kernel_size=3))
+                # print(block, layer, in_channels,out_channels)
                 if idx +1 == block_depth * num_blocks:
                     break
-        # for i, d in blocks_channel_list.items():
-        #     for i2 , d2 in d.items():
-        #         # print(i,i2,d2)
-f = fibModule(3, 5)
-f(3, 10,10)
-# class FibNet(nn.Module):
-#     def __init__(self, in_channels = 3, out_channels = 1, block_depth = 5):
-#         super().__init__()
+        return encoder
 
-#         self.in_channels = in_channels
-#         self.out_channels = out_channels
-#         self.block_depth = block_depth
-#         self.encoder = fibModule(in_channels,block_depth)
+class FibNet(nn.Module):
+    def __init__(self, in_channels = 3, out_channels = 1, num_blocks = 5, block_depth = 5, ):
+        super().__init__()
 
-#     def forward(x):
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_blocks  = num_blocks
+        self.block_depth = block_depth
+        self.mainModule = fibModule()
+        self.encoder = self.mainModule(self.in_channels, self.num_blocks,self.block_depth)
 
+    def forward(self, in_tensor):
+        x = in_tensor
+        for block in range(self.num_blocks):
+            in_ch = x 
+            x2 = self.encoder[block*self.num_blocks](in_ch)
+            for layer in range(1, self.block_depth):
+                idx = block*block_depth+layer
+                x = torch.cat((x,x2))
+                x2 = self.encoder[idx](x)
+f = FibNet()
+f() 
