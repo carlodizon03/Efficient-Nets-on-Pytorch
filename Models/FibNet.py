@@ -6,10 +6,6 @@ from torchsummary import  summary
 from collections import defaultdict
 # from ptflops import get_model_complexity_info
 
-
-
-
-
 class fibModule(nn.Module):
     '''
         Fib module is going to use the connection sequence of fibonacci sequence.
@@ -28,8 +24,12 @@ class fibModule(nn.Module):
 
 
     '''
-    def __init__(self):
+    def __init__(self, in_channels = 3, num_blocks = 5, block_depth = 5):
         super().__init__()
+        self.in_channels = in_channels
+        self.num_blocks = num_blocks
+        self.block_depth = block_depth
+        self.encoder = self.build(in_channels = self.in_channels, num_blocks = self.num_blocks, block_depth = self.block_depth)
 
     def fibonacci(self,depth):
 
@@ -52,7 +52,7 @@ class fibModule(nn.Module):
                 depth_ -= 1
         return channel_list   
         
-    def forward(self, in_channels = 3, num_blocks = 5, block_depth = 5):
+    def build(self, in_channels = 3, num_blocks = 5, block_depth = 5):
         initial_ratio = 0.618
         blocks_channel_list= self.naive_block_channels_variation(self.fibonacci(num_blocks),  in_channels, block_depth)
         encoder = nn.ModuleList()
@@ -74,6 +74,19 @@ class fibModule(nn.Module):
                     break
         return encoder
 
+    def forward(self, inputs):
+        x = inputs 
+        for block in range(self.num_blocks):
+            out = self.encoder[block*self.block_depth](x)
+            for layer in range(1,self.block_depth):
+                print(x.shape, out.shape)
+                in2 = torch.cat((out,x),1)
+                x = out
+                out  = self.encoder[block*self.block_depth+layer](in2)
+                if layer == 4:
+                    x = out
+        return out
+
 class FibNet(nn.Module):
     def __init__(self, in_channels = 3, out_channels = 1, num_blocks = 5, block_depth = 5, ):
         super().__init__()
@@ -82,17 +95,20 @@ class FibNet(nn.Module):
         self.out_channels = out_channels
         self.num_blocks  = num_blocks
         self.block_depth = block_depth
-        self.mainModule = fibModule()
-        self.encoder = self.mainModule(self.in_channels, self.num_blocks,self.block_depth)
-
-    def forward(self, in_tensor):
-        x = in_tensor
-        for block in range(self.num_blocks):
-            in_ch = x 
-            x2 = self.encoder[block*self.num_blocks](in_ch)
-            for layer in range(1, self.block_depth):
-                idx = block*block_depth+layer
-                x = torch.cat((x,x2))
-                x2 = self.encoder[idx](x)
+        self.encoder = fibModule() 
+        self.initial_conv = nn.Conv2d(in_channels = self.in_channels, out_channels = self.in_channels, kernel_size = 3, stride= 2)
+    def forward(self, inputs):
+        inputs = self.initial_conv(inputs)
+        print("init_conv",inputs.shape)
+        return self.encoder(inputs)
+"""Load Cuda """
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda:0" if use_cuda else "cpu")
+torch.backends.cudnn.benchmark = True
+""""""""""""""""""
 f = FibNet()
-f() 
+f.to(device)
+
+# for p in f.parameters():
+#     print(p.shape)
+summary(f,(3,224,224))
