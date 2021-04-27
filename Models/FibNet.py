@@ -44,36 +44,43 @@ class fibModule(nn.Module):
             f.append(int(num/den))
         return(f)
 
-    def naive_block_channels_variation(self, blocks, depth = 5, ratio = 0.618):
-        channel_list = defaultdict(dict)
+    def naive_block_channels_variation(self, blocks, in_channels = 3,  depth = 5, ratio = 0.618):
+        channel_list =[3]
         for block_idx, block in enumerate(blocks):
             depth_ = depth
             ratio_ = ratio 
             while depth_ > 0:
                 val = int( (block * ratio_ * (1 - ratio_))*100)
-                channel_list['block_%d'%block_idx]['layer_%d'%(depth-depth_)] = val
+                channel_list.append(val)
                 ratio_ = 3.414 * ratio_ * (1 - ratio_)
                 depth_ -= 1
         return channel_list   
         
     def forward(self, in_channels = 3, num_blocks = 5, block_depth = 5):
         initial_ratio = 0.618
-        blocks_channel_dict= self.naive_block_channels_variation(self.fibonacci(num_blocks), block_depth)
+        blocks_channel_list= self.naive_block_channels_variation(self.fibonacci(num_blocks),  in_channels, block_depth)
         encoder = nn.ModuleList()
-        previous_out_channels = 0
         for block in range(num_blocks):
-            for layer in range(block_depth):
-                blk = 'block_%'%block
-                lyr = 'layer_%'%layer
-                in_channels = in_channels + previous_out_channels
-                out_channels = blocks_channel_dict[blk][lyr]
-                encoder[block].append(nn.Conv2d(in_channels,out_channels,kernel_size=3))
-                previous_out_channels = out_channels
-        for i, d in blocks_channel_list.items():
-            for i2 , d2 in d.items():
-                print(i,i2,d2)
+            
+            in_channels = blocks_channel_list[block*block_depth]
+            out_channels = blocks_channel_list[block*block_depth+1]
+            encoder.append(nn.Conv2d(in_channels,
+                                    out_channels,
+                                    kernel_size=3))
+            print(block, 0, in_channels,out_channels)
+            for layer in range(1,block_depth):
+                idx =  block*block_depth+layer
+                in_channels = blocks_channel_list[idx] + blocks_channel_list[idx-1]
+                out_channels = blocks_channel_list[idx+1]
+                # encoder.append(nn.Conv2d(in_channels,out_channels,kernel_size=3))
+                print(block, layer, in_channels,out_channels)
+                if idx +1 == block_depth * num_blocks:
+                    break
+        # for i, d in blocks_channel_list.items():
+        #     for i2 , d2 in d.items():
+        #         # print(i,i2,d2)
 f = fibModule(3, 5)
-f()    
+f(3, 10,10)
 # class FibNet(nn.Module):
 #     def __init__(self, in_channels = 3, out_channels = 1, block_depth = 5):
 #         super().__init__()
