@@ -56,9 +56,10 @@ class fibModule(nn.Module):
         return nn.Sequential(nn.Conv2d(in_channels,out_channels,kernel_size,stride),
                             nn.BatchNorm2d(out_channels),
                             nn.ReLU())    
+
     def build(self, in_channels = 3, num_blocks = 5, block_depth = 5):
         initial_ratio = 0.618
-        blocks_channel_list= self.naive_block_channels_variation(self.fibonacci(num_blocks),  in_channels, block_depth)
+        blocks_channel_list= self.naive_block_channels_variation(blocks = self.fibonacci(num_blocks),  in_channels = in_channels, depth = block_depth)
         encoder = nn.ModuleList()
         
         for block in range(num_blocks):
@@ -90,30 +91,37 @@ class fibModule(nn.Module):
                 # print(block, layer, in_channels,out_channels)
                 if idx +1 == block_depth * num_blocks:
                     break
-        for idx, layer in enumerate(encoder):
-            print(idx, layer)
+        # for idx, layer in enumerate(encoder):
+        #     print(idx, layer)
+        # print("--------------------------------------------")
         return encoder
-
+        
     def forward(self, inputs):
         x = inputs 
         for block in range(self.num_blocks):
             # print('cat idx:{0} \t out_idx: {1}'.format(block*self.block_depth*2, block*self.block_depth*2+1))
             cat_out = self.encoder[block*self.block_depth*2](x)
+            # print(self.encoder[block*self.block_depth*2])
             out = self.encoder[block*self.block_depth*2+1](x)
+            # print(self.encoder[block*self.block_depth*2+1])
+
             # print('block: {0} \t layer: {1} \t x: {2}  \t cat_out: {3} \t out: {4}'.format(block, 0, x.shape,  cat_out.shape, out.shape))
             for layer in range(1,self.block_depth):
+                # print(out.shape)
                 in2 = torch.cat((out,cat_out),1)
                 x = out
-                print('cat idx:{0} \t out_idx: {1}'.format(block*self.block_depth*2+(layer*2), block*self.block_depth*2+(layer*2)+1))
-                print(self.encoder[block*self.block_depth*2+(layer*2)])
-                print(self.encoder[block*self.block_depth*2+(layer*2)+1])
+                # print('cat idx:{0} \t out_idx: {1}'.format(block*self.block_depth*2+(layer*2), block*self.block_depth*2+(layer*2)+1))
                 cat_out = self.encoder[block*self.block_depth*2+(layer*2)](x)
+                # print(self.encoder[block*self.block_depth*2+(layer*2)])
+
                 out  = self.encoder[block*self.block_depth*2+(layer*2)+1](in2)
-                print('block: {0} \t layer: {1} \t x: {2} \t in2:{3} \t cat_out: {4} \t out: {5}'.format(block, layer, x.shape, in2.shape, cat_out.shape, out.shape))
-                print(layer)
-                if layer == 4:
+                # print(self.encoder[block*self.block_depth*2+(layer*2)+1])
+
+                # print('block: {0} \t layer: {1} \t x: {2} \t in2:{3} \t cat_out: {4} \t out: {5}'.format(block, layer, x.shape, in2.shape, cat_out.shape, out.shape))
+                # print(layer)
+                if layer == self.block_depth-1:
                     x = out
-                    print("later: 4 \t x:{0}".format(x.shape))
+                    # print("later: 4 \t x:{0}".format(x.shape))
         return out
 
 class FibNet(nn.Module):
@@ -138,7 +146,7 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 """"""""""""""""""
-f = FibNet(num_blocks=3,block_depth=3)
+f = FibNet(in_channels=3,out_channels=1, num_blocks=3, block_depth=3)
 f.cuda()
 # x = torch.rand(1,3,224,224)
 # y = f(x)
