@@ -1,6 +1,7 @@
 import argparse
 import torch
 import torch.nn as nn
+import os
 from torchsummary import summary
 from collections import OrderedDict
 from ptflops import get_model_complexity_info
@@ -12,6 +13,7 @@ from Models.FCHarDNet import hardnet as FCHarDNet
 from Models.ENet import ENet
 from Models.SegNet import SegNet
 from Models.ENet_no_tConv import ENet_no_tConv
+from logger import logger
 """Load Cuda """
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -35,14 +37,17 @@ parser.add_argument("-t", "--train_mode", type = str, help = "Model training mod
 parser.add_argument("-in", "--input_channels", type = int, help = "Input size", default = 3)
 parser.add_argument("-out", "--output_channels", type = int, help = "Output size", default = 1)
 parser.add_argument("-f", "--initial_features", type = int, choices = [16,32,64], help = "Output size", default = 64)
-parser.add_argument("-img_size","--image_size", type = int , help = "Image size.", default = 224)
+parser.add_argument("-img_size","--image_size", nargs="+", type = int , help = "Image size in tuple")
 parser.add_argument("-s", "--save", type = bool, help = "Save Summary", default = True)
 parser.add_argument("-o", "--out_path", type = str, help = "Save path", default = "Models/profiles/")
+parser.add_argument("-l", "--log", type = bool, help = "Model Log", default = "True")
 args = parser.parse_args()
 
+if(args.log):
+    log = logger.Logger(os.path.join("logs", args.model))
 ch_in = args.input_channels
 ch_out = args.output_channels
-img_size = args.image_size
+img_size = tuple(args.image_size)
 initial_features = args.initial_features
 model = args.model
 train_mode = args.train_mode
@@ -50,16 +55,8 @@ is_save = args.save
 save_path = args.out_path
 
 
-if(model == "IRIS_Net"):
-    net = models[model](in_channels = ch_in, out_channels = ch_out, initial_features = initial_features, train_mode = train_mode)
-elif(model == "IRIS_Netv2"):
-    net = models[model](in_channels = ch_in, out_channels = ch_out, initial_features = initial_features)
-elif(model == "UNet"):
-    net = models[model](in_channels = ch_in, out_channels = ch_out, init_features = initial_features)
-elif(model == "HarDNet-DWS-39"):
-    net = models[model](depth_wise = True, arch = 39, pretrained = False)
-elif(model == "FCHarDNet"):
-    net = models[model]()
+if(model == "IRIS_Net"):net
+    net = models[model](n_classes = ch_out)
 elif(model == "ENet"):
     net = models[model](num_classes = 1)
 elif(model == "SegNet"):
@@ -69,10 +66,11 @@ elif(model == "ENet_no_tConv"):
 
 
 net.to(device)
-su = str(summary(net,(ch_in, img_size, img_size)))
+su = str(summary(net,(ch_in, img_size[0], img_size[1])))
 su_list = list(su.split('\n'))
 macs, _ = get_model_complexity_info(net, (3,224,224), as_strings=True,
                                            print_per_layer_stat=False, verbose=False)
+log.model_graph(net,torch.rand(1,3,224,224).to(device))
 print('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
 su_list.append('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
 su_list.append("==========================================================================================")
@@ -83,7 +81,7 @@ times = []
 
 for i in range(15):
     net.eval()
-    ins = torch.rand([1,ch_in,img_size,img_size]).to(device)
+    ins = torch.rand([1,ch_in,img_size[0],img_size[1]]).to(device)
     start = time.time()
     preds = net(ins)
     tlapse = time.time() - start

@@ -64,7 +64,7 @@ def second_order_logistic(a, x):
         
         Xt+2 = F[F(Xt)] = F[Xt+1] = a * Xt+1 * (1-Xt+1)
 
-    '''
+    '''                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     return logistic2(a,logistic2(a,x))
 
 def fibonacci(depth):
@@ -109,8 +109,9 @@ def build_blocks(num_blocks = 5, block_depth = 5):
 #     vals = logistic(b,ratio,n_order=10)
 
 vals = naive_block_channels_variation(fibonacci(5))
-for key, val in vals.items():
-    print(key,val)
+# for key, val in vals.items():
+#     print(key,val)
 
-# plt.plot(vals)
-# plt.show()
+plt.plot(vals)
+plt.show()
+cd 
