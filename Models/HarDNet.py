@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchsummary import summary
 from ptflops import get_model_complexity_info
-
+import logger
 class Flatten(nn.Module):
     def __init__(self):
         super().__init__()
@@ -82,7 +82,7 @@ class HarDBlock(nn.Module):
         self.out_channels = 0 # if upsample else in_channels
         for i in range(n_layers):
           outch, inch, link = self.get_link(i+1, in_channels, growth_rate, grmul)
-          print(i, inch, outch, link)
+          # print(i, inch, outch, link)
           self.links.append(link)
           use_relu = residual_out
           if dwconv:
@@ -92,14 +92,14 @@ class HarDBlock(nn.Module):
           
           if (i % 2 == 0) or (i == n_layers - 1):
             self.out_channels += outch
-        print("Blk out =",self.out_channels)
+        # print("Blk out =",self.out_channels)
         self.layers = nn.ModuleList(layers_)
         
     def forward(self, x):
         layers_ = [x]
         for layer in range(len(self.layers)):
             link = self.links[layer]
-            print("links: ", link)
+            # print("links: ", link)
             tin = []
             for i in link:
                 tin.append(layers_[i])
@@ -170,7 +170,12 @@ class HarDNet(nn.Module):
         self.base.append ( ConvLayer(first_ch[0], first_ch[1],  kernel=second_kernel) )
         
         # Maxpooling or DWConv3x3 downsampling
-        if max_pool:in_channels
+        if max_pool:
+          self.base.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+        else:
+          self.base.append ( DWConvLayer(first_ch[1], first_ch[1], stride=2) )
+        
+        # Build all HarDNet blocks
         ch = first_ch[1]
         for i in range(blks):
             blk = HarDBlock(ch, gr[i], grmul, n_layers[i], dwconv=depth_wise)
@@ -195,7 +200,7 @@ class HarDNet(nn.Module):
                 nn.AdaptiveAvgPool2d((1,1)),
                 Flatten(),
                 nn.Dropout(drop_rate),
-                nn.Linear(ch, 1000) ))
+                nn.Linear(ch, 10) ))
                 
         #print(self.base)
         
@@ -228,4 +233,11 @@ class HarDNet(nn.Module):
         for layer in self.base:
           x = layer(x)
         return x
+model = HarDNet(False,pretrained=False,arch=85)
 
+model.cuda()
+ins = (3,224,224)
+summary(model, ins)
+macs, params = get_model_complexity_info(model,  ins, as_strings=True,
+                                        print_per_layer_stat=False, verbose=False)
+print('{0}  {1} '.format('Computational complexity: ', macs))#/10.**9

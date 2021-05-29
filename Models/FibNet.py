@@ -146,13 +146,13 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 """"""""""""""""""
-f = FibNet(in_channels=3,out_channels=1, num_blocks=3, block_depth=3)
-f.cuda()
+model= FibNet(in_channels=3,out_channels=10, num_blocks=5, block_depth=5)
+model.cuda()
 # x = torch.rand(1,3,224,224)
 # y = f(x)
 # print(y)
-summary(f,(3,224,224))
-macs, params = get_model_complexity_info(f, (3, 224, 224), as_strings=True,
-                                        print_per_layer_stat=True, verbose=False)
-print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+ins = (3,224,224)
+summary(model, ins)
+macs, params = get_model_complexity_info(model,  ins, as_strings=False,
+                                        print_per_layer_stat=False, verbose=False)
+print('{0}  {1} '.format('Computational complexity: ', macs/10.**9))

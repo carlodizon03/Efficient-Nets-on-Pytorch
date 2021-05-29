@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import collections
+import torchvision.transforms.functional as TF
 from torchsummary import summary
 from ptflops import get_model_complexity_info
 class ConvLayer(nn.Sequential):
@@ -236,19 +237,41 @@ class HarDBlock(nn.Module):
 
 
 class TransitionUp(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, scale_factor = 2):
         super().__init__()
         #print("upsample",in_channels, out_channels)
+        self.scale_factor = scale_factor
+        # Feature mapping
+        self.feature_maps = nn.Sequential(
+            nn.Conv2d(in_channels, in_channels*2, kernel_size=5, stride=1, padding=2),
+            nn.ReLU(),
 
-    def forward(self, x, skip, concat=True):
-        out = F.interpolate(
-                x,
-                size=(skip.size(2), skip.size(3)),
-                mode="bilinear",
-                align_corners=True,
-                            )
-        if concat:                            
-          out = torch.cat([out, skip], 1)
+            nn.Conv2d(in_channels*2, in_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU()
+        )
+        # Sub-pixel convolution layer
+        self.sub_pixel = nn.Sequential(
+            nn.Conv2d(in_channels, in_channels * (self.scale_factor ** 2), kernel_size=3, stride=1, padding=1),
+            nn.PixelShuffle(self.scale_factor),
+            nn.Sigmoid()
+        )
+    def forward(self, x, skip = None, concat=True):
+        # out = F.interpolate(
+        #         x,
+        #         size=(skip.size(2), skip.size(3)),
+        #         mode="bilinear",
+        #         align_corners=True,
+        #                     )
+
+
+        out = self.feature_maps(x)
+        out = self.sub_pixel(out)
+        
+        # print(x.shape,out.shape, skip.shape)
+        if concat:     
+            if skip.size(2) == 7:
+                out = TF.pad(out,[0,1,1,0])                       
+            out = torch.cat([out, skip], 1)
           
         return out
 
@@ -319,6 +342,7 @@ class hardnet(nn.Module):
         self.finalConv = nn.Conv2d(in_channels=cur_channels_count,
                out_channels=n_classes, kernel_size=1, stride=1,
                padding=0, bias=True)
+        self.final_sub = TransitionUp(48,24,scale_factor=4)
     
     def v2_transform(self, trt=False):        
         for i in range( len(self.base)):
@@ -332,6 +356,8 @@ class hardnet(nn.Module):
             self.denseBlocksUp[i] = HarDBlock_v2(blk.in_channels, blk.growth_rate, blk.grmul, blk.n_layers)
             self.denseBlocksUp[i].transform(blk, trt)
 
+
+    
     def forward(self, x):
         
         skip_connections = []
@@ -350,17 +376,30 @@ class hardnet(nn.Module):
             out = self.conv1x1_up[i](out)
             out = self.denseBlocksUp[i](out)
         
+        out = self.final_sub(out,concat = False)
         out = self.finalConv(out)
         
-        out = F.interpolate(
-                            out,
-                            size=(size_in[2], size_in[3]),
-                            mode="bilinear",
-                            align_corners=True)
-        return out
+        # out = F.interpolate(
+        #                     out,
+        #                     size=(size_in[2], size_in[3]),
+        #                     mode="bilinear",
+        #                     align_corners=True)
+        return torch.sigmoid(out)
 
 
+"""Load Cuda """
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda:0" if use_cuda else "cpu")
+torch.backends.cudnn.benchmark = True
+""""""""""""""""""
 
-
-
-print(hardnet())
+net = hardnet(1)
+net.to(device)
+su = str(summary(net,(3, 224, 224)))
+su_list = list(su.split('\n'))
+macs, _ = get_model_complexity_info(net, (3,224,224), as_strings=True,
+                                           print_per_layer_stat=False, verbose=False)
+# log.model_graph(net,torch.rand(1,3,224,224).to(device))
+print('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
+su_list.append('{:<30}  {:<8} / {} GFLOPS'.format('Computational complexity: ', macs, float(macs[:4])*2))
+su_list.append("==========================================================================================")
